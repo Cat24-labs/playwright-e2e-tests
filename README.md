@@ -209,4 +209,144 @@ git commit -m "Your commit message here"
 ---
 
 
+# Staging, Committing, and Pushing Files with Git
+
+4. **Link your local repository to a remote URL:**
+
+```sh
+git branch -M main # To match with remote branch name
+git remote add origin <remote-url>
+```
+
+5. **Confirm local and remote URLs:**
+
+```sh
+git remote -v
+```
+- This command shows the fetch and push URLs for your remote (they should be the same).
+
+6. **Push your first change to the remote repository:**
+
+```sh
+git push -u origin main
+```
+- The `-u` flag sets the upstream (remote tracking) branch.
+- If you see an error like `fatal: repository xx not found`, check your user and permissions with:
+
+```sh
+git config --list
+```
+- Make sure you have the right user and permission to commit. If not, add yourself as a collaborator in the GitHub settings and accept the invitation.
+- If you still have issues, you can force push:
+
+```sh
+git push -f origin main
+```
+- Then set the remote tracking branch:
+
+```sh
+git branch -u origin/main
+```
+
+---
+
+
+
+
+### 3.1. Creating a basic test
+
+[💡] Playwright recognizes the following file extensions as valid test specification files:
+  - `*.spec.ts`
+  - `*.test.ts`
+
+__STEPS__:
+
+1. Create a spec file `first-test.spec.ts` under the `./demo` folder
+2. Add the following test code:
+
+<details>
+<summary><strong>Sample Playwright Test: Home Page Title and Header</strong></summary>
+
+```ts
+import { test, expect } from "@playwright/test";
+
+test("Should load home page with correct title", async ({ page }) => {
+    // Go to the home page
+    await page.goto("https://katalon-demo-cura.herokuapp.com/");
+
+    // Assert if the title is correct
+    await expect(page).toHaveTitle("CURA Healthcare Service");
+
+    // Assert header text
+    await expect(page.locator('//h1')).toHaveText('CURA Healthcare providr')
+});
+```
+</details>
+
+3. Run this specific test file
+   
+```sh
+npx playwright test tests/demo/first-test.spec.ts --headed
+```
+
+[💡] To know more about `playwright test` command, run
+
+```sh
+npx playwright test --help
+```
+
+🎯 Congrats! We wrote a simple test, now let's understant each line. 
+
+---
+
+
+***Common Errors***
+1. Spec/test file not having `.spec or .test` init
+2. Navigation timeout error
+
+```ts
+use: {
+   navigationTimeout: 30_000, // Set timout to 30 seconds
+},
+```
+3. Missing `await` keyword before action methods
+4. Done! 
+
+
+### Option 1: VS Code Extension
+
+1. Open the VS CODE Extensions Marketplace and install:  
+   **`Playwright Test for VSCode`**
+2. Once installed, look for a new **laboratory flask icon** in the sidebar. Click to open the extension.
+3. You can now:
+   - **Record tests** interactively
+   - **Capture locators** with tooltips and visibility checks
+
+[💡] __Tips While Using the Extension__
+- Click on `assertion` tooltips to select an element.
+  - `Visibility` checks ensure the element is ready before interacting.
+  - `text` selectors provide an extra layer of validation.
+
+---
+
+### Option 2: Command Line Interface (CLI)
+
+1. View available options:
+```sh
+npx playwright codegen --help
+```
+2. Run with or without a URL:
+```sh
+npx playwright codegen
+npx playwright codegen https://katalon-demo-cura.herokuapp.com/
+```
+
+[💡] __Use CLI for__
+- Device emulation
+- Custom viewport settings
+- Automation scripts and advanced workflows
+
+🎯 **Codegen** can drastically reduce your test writing time and help you learn the best locator strategies along the way.
+
+---
 
