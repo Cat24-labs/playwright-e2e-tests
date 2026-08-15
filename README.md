@@ -389,3 +389,6 @@ npx playwright codegen https://katalon-demo-cura.herokuapp.com/
 ## Reference 
 - Key reference: https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
 
+
+## URL-- E-commerce_platform
+npx playwright codegen https://www.saucedemo.com/
