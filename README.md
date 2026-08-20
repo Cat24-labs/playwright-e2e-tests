@@ -392,3 +392,586 @@ npx playwright codegen https://katalon-demo-cura.herokuapp.com/
 
 ## URL-- E-commerce_platform
 npx playwright codegen https://www.saucedemo.com/
+
+
+
+# Allure Reporter Setup for Playwright
+
+## Installation & Basic Setup
+
+### Step 1: Check and Install Allure Command Line Tool 
+
+```sh
+allure --version
+```
+
+If you encounter an error like `zsh: command not found: allure`, install the global command line tool:
+
+```sh
+npm install -g allure-commandline
+```
+
+
+### Step 1: Install Allure Playwright Package
+
+Install the allure reporter as a development dependency:
+
+```sh
+npm install -D allure-playwright
+```
+
+---
+
+### Step 2: Configure Reporter in Playwright Config
+
+Update the `reporter` section in your `playwright.config.ts` file:
+
+```ts
+reporter: [
+  ['html'],                    // Default Playwright HTML reporter
+  ['allure-playwright'],       // Allure reporter
+],
+```
+
+---
+Run a test and you will see a folder `allure-results` in the project root
+
+### Step 3: Generate and View Reports
+
+After running your tests, generate the Allure report:
+
+```sh
+allure serve
+```
+
+
+
+## Advanced Configuration
+
+### Enhanced Reporter Setup
+
+For more detailed reporting, you can configure additional options:
+
+```ts
+reporter: [
+  [
+    'html',
+    {
+      open: 'never', // Don't auto-open HTML report
+    },
+  ],
+  [
+    'allure-playwright',
+    {
+      detail: true,
+      suiteTitle: true,
+      environmentInfo: {
+        name: 'TEST',
+        Release: 'Release 1.1',
+        node_version: process.version
+      },
+    },
+  ],
+],
+```
+
+---
+
+### Reference 
+- [Allure Advance Config] (https://allurereport.org/docs/playwright/)
+
+--- 
+
+
+
+# Java Installation (macOS)
+
+## Steps
+1. **Check if Java is installed:**
+```sh
+java -version
+```
+- If the version is JDK 8 or higher, skip installation.
+
+2. **Download Java:**
+   - Go to [Adoptium Java Downloads](https://adoptium.net/en-GB/)
+   - Download the LTS version for macOS
+
+3. **Install:**
+   - Run the installer, accept the terms, and complete the installation
+
+4. **Verify installation:**
+```sh
+java -version
+```
+   - Shows the installed Java version.
+
+## Notes
+- File size: ~180 MB, installation takes a few secondsp
+
+---
+
+
+# Adding Screenshots in Playwright
+
+## Option 1: Auto-Capture via Config
+
+Add the following setting in the `use` section of your `playwright.config.ts`:
+
+```ts
+use: {
+  screenshot: 'on', // Captures screenshot after each test
+  // OR
+  screenshot: 'only-on-failure', // Captures only when tests fail
+}
+```
+
+## Option 2: Manual Screenshot Capture
+
+### Basic Manual Screenshot
+
+```ts  
+  // Capture the screenshot
+  const screenshot = await page.screenshot({ fullPage: true });
+  
+  // Attach it to the report
+  await test.info().attach("Full Page Screenshot", {
+    body: screenshot,
+    contentType: "image/png",
+  });
+
+```
+
+
+The following examples demonstrate how to:
+
+- ✅ Add annotations to a group of tests
+- ✅ Conditionally skip tests (e.g., based on environment or browser)
+- ✅ Use custom tags like `@smoke` for categorization and filtering
+
+💡 Pro Tip: You can use `--grep` command in CLI to run only tests with the @smoke tag:
+
+```sh
+npx playwright test --grep '@smoke' --headed
+```
+
+In windows, remember to escape the quotes, like
+
+```sh
+"demo": "npx playwright test --grep=\"@smoke\" --headed",
+```
+
+# ⏳ Playwright Timeouts Quick Reference
+
+| Timeout Scope          | Default   | In Code                           | Config                       | CLI Flag           |
+|------------------------|-----------|-----------------------------------|------------------------------|--------------------|
+| **Action**             | none      | `{ timeout }` at action level     | `use: { actionTimeout }`     | —                  |
+| **Expect**             | 5,000 ms  | `{ timeout }` on expect level     | `expect: { timeout }`        | —                  |
+| **Test function**      | 30,000 ms | `test.setTimeout`, `test.slow`    | `timeout`                    | `--timeout`        |
+| **beforeAll/afterAll** | 30,000 ms | `testInfo.setTimeout` inside hook | —                            | —                  |
+| **Navigation**         | none      | `{ timeout }`                     | `use: { navigationTimeout }` | —                  |
+| **Global run**         | none      | —                                 | `globalTimeout`              | `--global-timeout` |
+
+
+
+
+# Chrome Arguments
+
+## Configuration Options
+
+### Global Configuration (affects all projects)
+```ts
+// playwright.config.ts
+export default defineConfig({
+  use: {
+    launchOptions: {
+      args: ["--disable-web-security"]
+    }
+  }
+});
+```
+
+### Project-Specific Configuration
+```ts
+// playwright.config.ts
+projects: [
+  {
+    name: "chromium-headless",
+    use: {
+      ...devices["Desktop Chrome"],
+      launchOptions: {
+        args: ["--no-sandbox", "--disable-dev-shm-usage"]
+      }
+    }
+  }
+]
+```
+
+---
+
+## Common Combinations
+
+### For Stable CI Testing
+```ts
+args: [
+  "--no-sandbox",
+  "--disable-dev-shm-usage",
+  "--disable-gpu",
+  "--disable-extensions",
+  "--disable-background-networking",
+  "--no-first-run",
+  "--disable-default-apps"
+]
+```
+
+### For Cross-Origin Testing
+```ts
+args: [
+  "--disable-web-security",
+  "--disable-features=VizDisplayCompositor",
+  "--allow-running-insecure-content",
+  "--disable-background-networking"
+]
+```
+
+### For Mobile
+```ts
+args: [
+    "--use-mobile-user-agent",
+    "--touch-events=enabled",
+    "--enable-viewport-meta"
+  ]
+```
+
+
+---
+
+## References
+
+- [Chromium Command Line Switches](https://peter.sh/experiments/chromium-command-line-switches/)
+
+---
+
+
+# Global Setup and Teardown setup
+
+## Global Set up
+Following examples demonstrates deleting allure results for every local run
+
+```ts
+import { FullConfig } from "@playwright/test";
+import * as fs from "fs";
+import * as path from "path";
+
+export default async function globalSetup(config: FullConfig) {
+    /* Executed before all the workers start. Good place to keep one-off tasks before all workers start */
+    console.log("--- STARTING GLOBAL SETUP ---");
+    if (process.env.RUNNER?.toUpperCase() === "LOCAL") {
+        const resultsDir = path.resolve(process.cwd(), "allure-results");
+        if (fs.existsSync(resultsDir)) {
+            fs.rmSync(resultsDir, { recursive: true, force: true });
+            console.log(">> Deleted allure-results folder for clean local run.");
+        }
+    }
+
+    // Add any other global setup logic here:
+    // - Database initialization
+    // - Test data preparation
+    // - Environment configuration
+    // - External service setup
+    // - Start test servers
+
+
+    console.log("--- GLOBAL SETUP COMPLETE ---");
+}
+
+```
+
+## Global teardown
+Following examples demonstrates spining up allure reporter at the end of every local test run
+
+```ts
+import { FullConfig } from "@playwright/test";
+import { exec } from "child_process";
+
+export default async function globalTeardown(config: FullConfig) {
+    /* Executed after all workers complete. Good place for cleanup tasks */
+    console.log("--- STARTING TEARDOWN PROCESS ---");
+
+    /**
+     * This can be used to:
+     * - Release the database connection
+     * - Reset application state. e.g. Delete a created record/transaction so you can re-use
+     * - Temp folder/files clean up
+     * - Generate and open reports
+     */
+
+    // Generate Allure report for local runs
+    if (process.env.RUNNER?.toUpperCase() === "LOCAL") {
+        console.log(" >> Local run detected - starting Allure server...");
+        exec("allure serve", (error, stdout, stderr) => {
+            if (error) {
+                console.error("ERROR: Starting Allure server:", error.message);
+            }
+        });
+    }
+
+    console.log("--- TEARDOWN PROCESS COMPLETE ---");
+}
+
+```
+
+## Recommended `tsconfig.json` for JSON Import Support
+1. To import `.json` files smoothly, ensure your project has a valid TypeScript config:
+2. Create the file `tsconfig.json` at the project root and add the follwoing basic config
+
+```json
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "CommonJS",
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "strict": false,
+        "noImplicitAny": false
+    },
+    "include": ["tests/**/*.ts", "data/**/*.ts", "playwright.config.ts"],
+    "exclude": ["node_modules", "dist"]
+}
+
+```
+
+3. Reference: https://www.typescriptlang.org/tsconfig/
+
+
+
+## Handling Static/Constants Data
+
+### Reading data from JSON file
+
+1. **Create a JSON file under /data folder**  
+   - Add a sample data
+
+2. **Import the JSON file** into any test or helper file:
+
+```ts
+import constants from "../../data/constants.json";
+```
+4. Access values using `dot` notation. You can also use `JSON.stringify()` to print or log entire objects.
+
+__Notes & Troubleshooting__
+**Error:**
+An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.ts(5097)
+✅ Fix: Remove the .ts extension from the import path.
+
+**Error:**
+SyntaxError: data/constants.json: Unexpected end of JSON input
+✅ Fix: Make sure your JSON file is not empty and contains valid syntax.
+
+---
+
+
+
+## Different Environment Data Handling
+
+1. Create a config fixture which can be used across different environment
+
+```ts
+// tests/helpers/config-fixtures.ts
+import { test as base } from "@playwright/test";
+
+export type EnvConfig = {
+    envName: string;
+    appURL: string;
+    dbConfig: {};
+};
+
+export const test = base.extend<EnvConfig>({
+    // Define options and provide default values.
+    // We can later override them in the config.
+    envName: ["provide-a-val", { option: true }],
+    appURL: ["provide-a-val", { option: true }],
+    dbConfig: [{}, { option: true }],
+});
+
+```
+
+2. Create a new config file
+
+```ts
+// config/test.playwright.config.ts
+
+import { baseConfig } from "../playwright.config.ts";
+import { defineConfig, devices } from "@playwright/test";
+import type { EnvConfig } from "../tests/helpers/config-fixtures.ts";
+
+/**
+ * Read environment variables from file.
+ * https://github.com/motdotla/dotenv
+ */
+// import dotenv from 'dotenv';
+// import path from 'path';
+// dotenv.config({ path: path.resolve(__dirname, '.env') });
+
+/**
+ * See https://playwright.dev/docs/test-configuration.
+ */
+export default defineConfig<EnvConfig>({
+    ...baseConfig,
+    testDir: "../tests", // Fix path from config folder
+    use: {
+        ...baseConfig.use, // Required
+        envName: "test",
+        appURL: "https://katalon-demo-cura.herokuapp.com/",
+        dbConfig: {
+            dbname: "",
+            host: "test",
+            port: "1234",
+        },
+    },
+});
+```
+
+3. Use the variable in a test 
+
+```ts
+// tests/functional/make-apptmnt.spec.ts
+    test.beforeEach("Launch Homepage", async ({ page }, testInfo) => {
+        // Access the custom env specific value as below
+        const envConfig = testInfo.project.use as any; // Note: project and use are just objects ✅ // @ts-ignore
+        console.log(`>>> Final Config: ${JSON.stringify(testInfo.config)}`);
+        console.log(`>>> Custom Env Config: ${JSON.stringify(envConfig.envName)}`);
+
+        // Launch Home page
+        await page.goto(envConfig.appURL);
+        // Rest of the steps
+    });
+
+```
+4. Done! 🎉
+
+
+## Handling Sensitive Data
+Use `.env` files to manage environment-specific variables for flexible and secure test execution.
+
+---
+
+__Steps to Load Environment Data from `.env` Files__:
+1. Install `dotenv`
+
+```sh
+npm i -D dotenv
+```
+- `dotenv:` Loads variables from .env files
+
+2. Import Modules in `playwright.config.ts`
+
+```ts
+import dotenv from 'dotenv';
+dotenv.config();
+```
+
+3. You can update the variable in `.env` file
+
+```sh
+# Runner
+RUNNER=local
+
+# TEST - CURA WEB APP
+TEST_USER_NAME=John Doe
+TEST_PASSWORD=ThisIsNotAPassword
+```
+
+4. You can access these variable as the node.js env variable across the project files
+5. Update the username and password in a test file and run
+
+Note: If you see type error when using `process.env.{varName}`, you can overcome this by having a `non-null assertion (!)` check but be sure that the variable exists. Alternatively you can use `//@ts-ignore`
+
+🎯 You’re now ready to run Playwright tests in different environments with ease!
+
+---
+
+
+# Read Data From CSV File
+
+### Pseudocode
+1. Create a `.csv` file with test data
+2. Read the file with native `fs` module
+3. Parse the csv data -> Array of data (install csv-parse)
+4. Console out the data
+5. Done ! 🎉
+
+
+```ts
+import fs from "fs"
+import path from "path"
+import { parse } from "csv-parse/sync"
+
+/**
+1. Create a `.csv` file with test data
+2. Read the file with native `fs` module
+3. Parse the csv data -> Array of data
+4. Console out the data
+5. Done ! 🎉
+*/
+
+// Read the file
+const csvFilePath = path.resolve(`${process.cwd()}/data/functional/make-aptmnt-test-data.csv`)
+const fileContent = fs.readFileSync(csvFilePath, {encoding: "utf-8"})
+console.log(fileContent);
+console.log(typeof fileContent);
+
+// Parse the csv data
+const csvDataArr = parse(fileContent, {
+  columns: true,
+  skip_empty_lines: true,
+  trim: true
+})
+
+// Console out the data
+console.log(csvDataArr);
+
+```
+
+**Reference**
+1. Nodejs Doco: https://nodejs.org/docs/latest/api/fs.html#synchronous-api 
+---
+
+
+## Set up logger
+
+Use the following code to set up a logger util
+
+```ts
+import { test } from "@playwright/test";
+import chalk from "chalk";
+
+type Level = "log" | "info" | "warn" | "error";
+
+export async function log(level: Level, message: string) {
+    const plainLine = `[${level.toUpperCase()}]: ${message}`; // For Allure
+    let coloredLine = plainLine;
+
+    // Pick color based on log level
+    switch (level) {
+        case "info":
+            coloredLine = chalk.blue(plainLine);
+            break;
+        case "warn":
+            coloredLine = chalk.yellow(plainLine);
+            break;
+        case "error":
+            coloredLine = chalk.red(plainLine);
+            break;
+        default:
+            coloredLine = chalk.white(plainLine);
+    }
+
+    // Print colored text in terminal
+    (console[level] || console.log)(coloredLine);
+
+    // Send plain text to Allure
+    await test.step(plainLine, async () => {});
+}
+
+```

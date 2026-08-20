@@ -1,21 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { log } from "../helpers/logger";
 
-test.describe("Make appointment", () => {
+test.describe("Make appointment", {annotation: {type: "User Story", description: "AzureDevOps-9868: Make Appointment Feature"}}, () => {
   test.beforeEach("Login with valid creds", async ({ page }, testInfo) => {
     // 1. Launch URL and asset title and header
-
-    // Get the URL from config file
-     const envConfig = testInfo.project.use as any;  // Note: project and use are just objects ✅ // @ts-ignore
-
-    // Custom logs
-    await log( "info", `Launching the web app in ${envConfig.envName}`);
-
-      //  console.log(`>>> Final Config: ${JSON.stringify(testInfo.config)}`);
-      //  console.log(`>>> Custom Env Config: ${JSON.stringify(envConfig.envName)}`);
-
-    await page.goto(envConfig.appURL);
-    // await page.goto("https://katalon-demo-cura.herokuapp.com/");
+    await page.goto("https://katalon-demo-cura.herokuapp.com/");
     await expect(page).toHaveTitle("CURA Healthcare Service");
     await expect(page.locator("//h1")).toHaveText("CURA Healthcare Service");
 
@@ -24,24 +12,35 @@ test.describe("Make appointment", () => {
     await expect(page.getByText("Please login to make")).toBeVisible();
 
     // Successful Login
-    await page.getByLabel("Username").fill(process.env.TEST_USER_NAME);
-    await page.getByLabel("Password").fill(process.env.TEST_PASSWORD);
+    await page.getByLabel("Username").fill("John Doe");
+    await page.getByLabel("Password").fill("ThisIsNotAPassword");
     await page.getByRole("button", { name: "Login" }).click();
+
+    /**
+     * Add custom screenshot at test scope level
+     * @TODO: add this as a helper function
+     *
+     */
+    let fullpageLoginScreenshot = await page.screenshot({ fullPage: true });
+    await testInfo.attach("login page", {
+      body: fullpageLoginScreenshot,
+      contentType: "image/png",
+    });
 
     // Asset a text
     await expect(page.locator("h2")).toContainText("Make Appointment");
-    await log ( "log", "The login is successful...")
-    await log ( "error", "The next page did not load")
   });
 
   // Test goes here
-  test("Should make an appointment with non-default", async ({ page }, testInfo ) => {
-
-    console.log(`>> Current config: \n ${JSON.stringify(testInfo.config)}`);
-    //Dropdown
+  test("Should make an appointment with non-default", {annotation: {type: "Bug", description: "Defect: 1234 - Doesnot work in Firefox"}, tag: "@smoke" }, async ({ page, browserName }) => {
+    
+    // skip the test for firefox
+    test.skip(browserName === "firefox", "Open Bug ID: 1234");
+    
+    // Dropdown
     await page.getByLabel("Facility").selectOption("Hongkong CURA Healthcare Center");
 
-    //Checkbox
+    // Checkbox
     await page.locator("div").filter({ hasText: "Apply for hospital readmission" }).nth(2).click();
 
     // Radio Button
@@ -64,5 +63,5 @@ test.describe("Make appointment", () => {
     await expect(page.getByRole("link", { name: "Go to Homepage" })).toBeVisible();
   });
 
-    // More tests goes here....
+  // More tests goes here....
 });

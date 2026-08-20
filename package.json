@@ -13,7 +13,20 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "inventory": "npx playwright test tests/functional/inventory.specs.ts --headed",
+    "dev:make-apt": "npx playwright test --config=config/dev.playwright.config.ts tests/functional/make.aptmt.spec.ts --headed",
+    "test:make-apt": "npx playwright test --config=config/test.playwright.config.ts tests/functional/make.aptmt.spec.ts",
+    "demo:params": "npx playwright test tests/demo/params.make.aptmt.spec.ts --headed",
+    "demo:parallel": "npx playwright test --grep @demo",
+    "demo:global": "npx playwright test tests/functional/login.spec.ts",
+    "demo:hooks": "npx playwright test tests/demo/hooks.demo.spec.ts --headed",
+    "pw-adv-cap": "DEBUG=pw:api npx playwright test tests/demo/pw.adv.cap.login.spec.ts --headed",
+    "demo:tag": "npx playwright test --grep @smoke --headed",
+    "pw-basic-cap": "npx playwright test tests/demo/pw.basic.cap.make.aptmt.spec.ts --headed",
+    "debug:trace": "npx playwright test tests/demo/debug.make.aptmt.spec.ts --trace on",
+    "debug:cli": "PWDEBUG=1 npx playwright test tests/demo/debug.make.aptmt.spec.ts",
+    "debug:ui": "npx playwright test tests/demo/debug.make.aptmt.spec.ts --ui --headed",
+    "debug": "npx playwright test tests/demo/debug.make.aptmt.spec.ts --headed",
+    "inventory": "npx playwright test tests/functional/inventory.spec.ts --headed",
     "ele-interaction": "npx playwright test tests/demo/element.handling.make.aptmt.spec.ts --headed",
     "make-apt": "npx playwright test tests/functional/make.aptmt.spec.ts --headed",
     "login": "npx playwright test tests/functional/login.spec.ts --headed",
@@ -21,6 +34,10 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
-    "@types/node": "^26.2.0"
+    "@types/node": "^26.2.0",
+    "allure-playwright": "^3.10.2",
+    "chalk": "^6.0.0",
+    "csv-parse": "^7.0.2",
+    "dotenv": "^17.4.2"
   }
 }
