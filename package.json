@@ -13,6 +13,8 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
+    "test:api": "npx playwright test --config=config/test.playwright.config.ts tests/api/users.api.spec.ts",
+    "test:e2e": "npx playwright test --config=config/test.playwright.config.ts tests/e2e/nopcommerce.e2e.spec.ts --headed",
     "dev:make-apt": "npx playwright test --config=config/dev.playwright.config.ts tests/functional/make.aptmt.spec.ts --headed",
     "test:make-apt": "npx playwright test --config=config/test.playwright.config.ts tests/functional/make.aptmt.spec.ts",
     "demo:params": "npx playwright test tests/demo/params.make.aptmt.spec.ts --headed",
@@ -27,6 +29,7 @@
     "debug:ui": "npx playwright test tests/demo/debug.make.aptmt.spec.ts --ui --headed",
     "debug": "npx playwright test tests/demo/debug.make.aptmt.spec.ts --headed",
     "inventory": "npx playwright test tests/functional/inventory.spec.ts --headed",
+    "multi-window": "npx playwright test tests/functional/multi.window.spec.ts --headed",
     "ele-interaction": "npx playwright test tests/demo/element.handling.make.aptmt.spec.ts --headed",
     "make-apt": "npx playwright test tests/functional/make.aptmt.spec.ts --headed",
     "login": "npx playwright test tests/functional/login.spec.ts --headed",

@@ -14,6 +14,6 @@ export default async function globalTeardown(config: FullConfig) {
             }
         });
     }
-
+    
     console.log(`[INFO]: Completed the global teardown process...`);
 }

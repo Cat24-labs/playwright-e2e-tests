@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import pwHelper from "../helpers/pw-helper";
 
 test.describe("Make appointment", {annotation: {type: "User Story", description: "AzureDevOps-9868: Make Appointment Feature"}}, () => {
   test.beforeEach("Login with valid creds", async ({ page }, testInfo) => {
@@ -21,11 +22,13 @@ test.describe("Make appointment", {annotation: {type: "User Story", description:
      * @TODO: add this as a helper function
      *
      */
+
+    await pwHelper.takeFullPageScreenshot( page, "login page")
     let fullpageLoginScreenshot = await page.screenshot({ fullPage: true });
-    await testInfo.attach("login page", {
-      body: fullpageLoginScreenshot,
-      contentType: "image/png",
-    });
+    // await testInfo.attach("login page", {
+    //   body: fullpageLoginScreenshot,
+    //   contentType: "image/png",
+    // });
 
     // Asset a text
     await expect(page.locator("h2")).toContainText("Make Appointment");

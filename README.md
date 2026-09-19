@@ -975,3 +975,203 @@ export async function log(level: Level, message: string) {
 }
 
 ```
+## Set up a base page
+
+1. Create `basepage.ts` under `./tests/page-objects'` folder
+2. A sample content of the file: 
+
+```ts
+import { expect, type Locator, type Page } from "@playwright/test";
+import { log } from "../helpers/logger.js";
+
+export default class BasePage {
+    readonly page: Page;
+
+    constructor(page: Page) {
+        this.page = page;
+    }
+
+    /* All reusable actions */
+    async navigateTo(path: string) {
+        await log("info", `Navigating to the path: ${path}`);
+        await this.page.goto(path);
+    }
+
+    /** Click action */
+    async click(ele: Locator) {
+        try {
+            await expect(ele).toBeVisible({ timeout: 10_000 }); // Custom timeout: Default - 5 seconds
+            await ele.click();
+        } catch (error) {
+            await log("error", `Failed to click element: ${ele.toString()}, original error: ${error}`);
+            throw error;
+        }
+    }
+
+    /** Type action */
+    async typeInto(ele: Locator, text: string) {
+        try {
+            await expect(ele).toBeVisible({ timeout: 10_000 });
+            await ele.fill(text);
+        } catch (error) {
+            await log("error", `Failed to type into element: ${ele.toString()}, original error: ${error}`);
+            throw error;
+        }
+    }
+}
+
+```
+---
+
+
+# Instructions and Notes
+
+***Record Test Execution Flow***
+1. Recoed the login flow: `await page.goto('https://admin-demo.nopcommerce.com/');` app //admin@yourstore.com; passcode:admin
+2. Add URL assertion
+3. Run and Confirm if its work
+4. Done!
+
+
+## Create Home Page Object
+Sample code for home and customer list page
+
+**home page**
+```ts
+import BasePage from "./basepage.js";
+import { expect, type Page } from "@playwright/test";
+import { log } from "../helpers/logger.js";
+
+class HomePage extends BasePage {
+    constructor(page: Page) {
+        super(page);
+    }
+
+    /* Elements */
+    get usernameInputBox() {
+        return this.page.getByRole("textbox", { name: "Email:" });
+    }
+    get passwordInputBox() {
+        return this.page.getByRole("textbox", { name: "Password:" });
+    }
+    get loginBtn() {
+        return this.page.getByRole("button", { name: "Log in" });
+    }
+
+    /* Page Actions */
+    async loginTonopCommerceWeb(url: string, username: string, password: string) {
+        try {
+            await log("info", `Login to :${url} with ${username}`);
+            await this.navigateTo(url);
+            await this.typeInto(this.usernameInputBox, username);
+            await this.typeInto(this.passwordInputBox, password);
+            await this.click(this.loginBtn);
+            await expect(this.page).toHaveTitle("Dashboard / nopCommerce administration");
+            await log("info", "Home page is launched successfully...");
+        } catch (err) {
+            (err as Error).message = `Failed login to nopcommerce web: ${url}, with username: ${username}`;
+            throw err;
+        }
+    }
+}
+
+export default HomePage;
+
+// Use this in your tests like:
+// const homePage = new HomePage(page);
+
+/**
+ * Notes:
+ * 1. This is where we spent MOST of the hours getting the locators and adding methods on a page for covearg
+ * 2. Use 'codegen' generated selectors to construct page objects
+ */
+
+```
+---
+
+# Running the E2E Test Sucessfully
+
+__Steps__
+1. Get the API key and update `.env` file
+2. Add the following setting in `playwright.config.ts`
+```ts
+// Use object
+userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+
+// Project object
+args: ["--disable-blink-features=AutomationControlled", "--disable-features=IsolateOrigins,site-per-process", "--allow-no-sandbox-job"],
+```
+1. Re-run the test
+2. Test ✅ 
+---
+
+
+## 🚀 GitHub Copilot Setup**
+
+__Pre-Requisite__
+1. Should have a valid `github` credentials
+2. Latest VSCode installed (`Command Palette -> Help:About`)
+
+__Check__
+1. The signed-in user in VS Code
+2. GitHub -> Profiles should showup your current plan
+3. Done !🎉
+
+
+## 🚀 Playwright MCP Server Setup**
+
+1. Create `.vscode/mcp.json` in the workspace
+2. This config has two structure
+
+```json
+"servers": {} - Contains the list of MCP servers and their configurations
+"inputs": [] - Optional placeholders for sensitive information like API keys
+```
+3. Add the playwright MCP server config
+4. Done! 🎉
+
+
+
+## Playwright MCP Server - In Action ##
+1. Create a new spec file called `multi.window.spec.ts` under my functional folder
+2. And capture the flows as below
+   - Navigate to the site: `https://the-internet.herokuapp.com/`
+   - Click on "Multiple Windows" link
+   - Navigate to the newly opened window and assert the tile
+   - Click the link on that new window
+   - Navigate to the next window that is opened
+   - Assert the header text
+   - Come back to the present window
+3. Add a new key in `package.json` file
+4. And run the spec in `headed` mode
+
+
+
+# 🧩 YML/YAML – Fast Facts
+
+## 📘 Overview
+YAML (YAML Ain’t Markup Language) is a **human-readable data format** used to define structured data — especially in **DevOps, CI/CD pipelines, and automation tools** like GitHub Actions, Docker, and Kubernetes.
+
+It’s popular because it’s **simple, readable, and indentation-based** — no curly braces or brackets like JSON.
+
+---
+
+## 🧠 Key Concepts
+
+| Concept | Description | Example |
+|----------|--------------|----------|
+| **File Extension** | YAML files use `.yaml` or `.yml` (both are valid) | `config.yaml` |
+| **Key–Value Pair** | Each line has a key followed by a colon | `name: Playwright` |
+| **Indentation** | Spaces define hierarchy (⚠️ tabs are **not** allowed) | <br>`test:`<br>&nbsp;&nbsp;`script: run-tests.sh` |
+| **Lists / Arrays** | Begin with a dash `-` | <br>`browsers:`<br>&nbsp;&nbsp;`- chrome`<br>&nbsp;&nbsp;`- firefox` |
+| **Comments** | Start with `#` | `# This is a comment` |
+| **Multi-line Values** | Use `|` for block text | <br>`description: |`<br>&nbsp;&nbsp;`This test runs...` |
+| **Booleans & Numbers** | No quotes needed for simple values | `enabled: true` |
+
+---
+
+## Useful VS Code Extentions
+1. GitHub Actions
+2. YAML ❤️ JSON
+
+---

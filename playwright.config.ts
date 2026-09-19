@@ -60,6 +60,7 @@ export const baseConfig = defineConfig({
     screenshot: "on",
     //actionTimeout: 10_000
     //video: "retain-on-failure",
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
   },
 
   /* Configure projects for major browsers */
@@ -69,9 +70,9 @@ export const baseConfig = defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         // viewport: null,
-        // launchOptions: {
-        //   args: ["--start-maximized"],
-        // },
+        launchOptions: {
+          args: ["--disable-blink-features=AutomationControlled", "--disable-features=IsolateOrigins,site-per-process", "--allow-no-sandbox-job"],
+        },
       },
     },
 
@@ -117,3 +118,5 @@ export const baseConfig = defineConfig({
   //   reuseExistingServer: !process.env.CI,
   // },
 });
+
+export default baseConfig;
