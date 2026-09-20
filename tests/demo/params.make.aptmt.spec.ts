@@ -5,7 +5,22 @@ import path from "node:path";
 
 // const makeAppTestData = TestData.makeAppointmentTestData();
 const csvFilepath = path.resolve(`${process.cwd()}/data/functional/make-aptmnt-test-data.csv`)
-const makeAppTestData = fileHelper.readCSV(csvFilepath)
+const csvContent = String(fileHelper.readFile(csvFilepath)).trim();
+const csvLines = csvContent.split(/\r?\n/).map((line) => {
+   const values: string[] = [];
+   const csvValue = /(?:^|,)\s*("(?:[^"]|"")*"|[^,]*)/g;
+   let match: RegExpExecArray | null;
+
+   while ((match = csvValue.exec(line)) !== null) {
+      values.push(match[1].replace(/^"|"$/g, "").replace(/""/g, '"').trim());
+   }
+   return values;
+});
+
+const [headers = [], ...dataRows] = csvLines;
+const makeAppTestData = dataRows.map((row) =>
+   Object.fromEntries(headers.map((header, index) => [header, row[index] ?? ""])),
+);
 
 // Access the data
 for (const apptData of makeAppTestData) {

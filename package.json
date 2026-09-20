@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
-    "@types/node": "^26.2.0",
+    "@types/node": "^26.6.2",
     "allure-playwright": "^3.10.2",
     "chalk": "^6.0.0",
     "csv-parse": "^7.0.2",
